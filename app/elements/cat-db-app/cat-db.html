@@ -1,0 +1,22 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../base-crud/base-crud-behavior.html">
+
+<script>
+	((global) => {
+		'use strict';
+
+		Polymer({
+			is: 'cat-db',
+
+			behaviors: [
+				global.Bits.BaseCrudBehavior
+			],
+
+			properties: {
+				tag: {
+					value: 'catdb#CatDBManager'
+				}
+			}
+		});
+	})(this);
+</script>

@@ -1,0 +1,29 @@
+{
+	"name": "cat-db",
+	"version": "1.0.0",
+	"dependencies": {
+		"bits-base": "^2.0.0"
+	},
+
+	"appDir": "app/",
+	"contentElement": "cat-db-app",
+	"contentImport": "/elements/cat-db-app/cat-db-app.html",
+
+	"scopes": [
+		{
+			"name": "public",
+			"displayName": "Public"
+		},
+		{
+			"name": "cat-db-admin",
+			"displayName": "Cat DB Admin"
+		},
+		{
+			"name": "cat-db-user",
+			"displayName": "Cat DB User"
+		}
+	],
+	"displayName": "Cat DB",
+	"icon": "icons:favorite",
+	"category": "Tutorials"
+}

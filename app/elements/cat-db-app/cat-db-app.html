@@ -1,0 +1,324 @@
+//
+// Client side
+//
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/iron-form/iron-form.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-radio-button/paper-radio-button.html">
+<link rel="import" href="../../bower_components/paper-radio-group/paper-radio-group.html">
+<link rel="import" href="../../bower_components/vaadin-grid/vaadin-grid.html">
+<link rel="import" href="../../bower_components/vaadin-grid/vaadin-grid-sorter.html">
+<link rel="import" href="../base-message-center/base-message-center.html">
+<link rel="import" href="../cat-db-app/cat-db.html">
+
+<dom-module id="cat-db-app">
+	<template>
+		<style>
+			:host {
+				height: 100%;
+				position: relative;
+				display: block;
+			}
+
+			#header {
+				height: auto;
+				overflow-y: hidden;
+				position: relative;
+				display: block;
+				z-index: 0;
+				box-sizing: border-box;
+				margin: 1em;
+			}
+
+			#scroller {
+				height: 80%;
+				overflow-y: auto;
+				position: relative;
+				display: block;
+				z-index: 0;
+				box-sizing: border-box;
+			}
+
+			#grid {
+				height: 30%;
+				margin: 1em;
+				position: relative;
+				display: block;
+			}
+
+			#form-new {
+				display: block;
+				border: 1px solid black;
+				margin: 1em;
+			}
+
+			#form-new paper-input {
+				margin: 0.5em;
+			}
+
+			.form-header {
+				display: block;
+				margin: 0.5em;
+			}
+
+			.radio-header {
+				margin: 0.5em;
+			}
+
+			.form-button {
+				border: 1px solid grey;
+				margin: 0.5em;
+			}
+
+			.error {
+				color: red;
+			}
+
+			.normal {
+				color: black;
+			}
+		</style>
+
+		<base-message-center id="messageCenter"></base-message-center>
+		<cat-db id="catDB" items="{{catDB}}"></cat-db>
+
+		<div id="header">
+			<h1>OpenFog Cat Database</h1>
+			<p>Node ID: <span id="systemId" class$="[[systemIdClass]]">[[systemId]]</span></p>
+			<p>Server Message: <span id="msg" class$="[[msgClass]]">[[msg]]</span></p>
+		</div>
+		<div id="scroller">
+			<vaadin-grid id="grid" items="[[catDB]]">
+				<vaadin-grid-column>
+					<template class="header">
+						<vaadin-grid-sorter path="id">ID</vaadin-grid-sorter>
+					</template>
+					<template>[[item.id]]</template>
+				</vaadin-grid-column>
+				<vaadin-grid-column>
+					<template class="header">
+						<vaadin-grid-sorter path="type">Type</vaadin-grid-sorter>
+					</template>
+					<template>[[item.type]]</template>
+				</vaadin-grid-column>
+				<vaadin-grid-column>
+					<template class="header">
+						<vaadin-grid-sorter path="name">Name</vaadin-grid-sorter>
+					</template>
+					<template>[[item.name]]</template>
+				</vaadin-grid-column>
+				<vaadin-grid-column>
+					<template class="header">
+						<vaadin-grid-sorter path="age">Age</vaadin-grid-sorter>
+					</template>
+					<template>[[item.age]]</template>
+				</vaadin-grid-column>
+			</vaadin-grid>
+
+			<form id="form-new" is="iron-form">
+				<label class="form-header">Input Your Cat here!</label>
+				<label class="radio-header" for="type">Type</label>
+				<paper-radio-group id="type" selected="Nora">
+					<paper-radio-button name="Somali">Somali</paper-radio-button>
+					<paper-radio-button name="Mike">Mike</paper-radio-button>
+					<paper-radio-button name="Robot">Robot</paper-radio-button>
+					<paper-radio-button name="Nora" value="on">Nora</paper-radio-button>
+				</paper-radio-group>
+
+				<paper-input id="name" label="Name" value="{{selectedName}}"></paper-input>
+				<paper-input id="age" label="Age" value="{{selectedAge}}" auto-validate pattern="[0-9]*" error-message="numbers only!"></paper-input>
+
+				<paper-button on-tap="onSend" class="form-button">Submit</paper-button>
+				<paper-button on-tap="onClear" class="form-button">Clear</paper-button>
+				<paper-button on-tap="onPing" class="form-button">Ping</paper-button>
+			</form>
+		</div>
+	</template>
+
+	<script>
+		(() => {
+			'use strict';
+
+			function onInitialized(data) {
+				console.log('Base is initialized.', data);
+			}
+
+			function onAck(data) {
+				console.log('Ack received.', data);
+			}
+
+			Polymer({
+				is: 'cat-db-app',
+
+				publish: {
+				},
+
+				properties: {
+					selectedType: {
+						type: String,
+						value: 'Nora',
+						observer: "typeChanged"
+					},
+					selectedName: {
+						type: String,
+						value: undefined
+					},
+					selectedAge: {
+						type: Number,
+						value: undefined
+					},
+					catDB: {
+						type:Array,
+						value: [
+							{type: 'nora', name: 'hoge', age:'1'}
+						]
+					},
+					systemId: {
+						type: String,
+					},
+					msg: {
+						type: String,
+					},
+					systemIdClass: {
+						type: String,
+						value: 'normal',
+						observer: 'styleChanged'
+					},
+					msgClass: {
+						type: String,
+						value: 'normal',
+						observer: 'styleChanged'
+					}
+				},
+
+				typeChanged: function(newval, oldval) {
+					console.log('type changed:' + oldval + '=>' + newval);
+				},
+
+				styleChanged: function(newval, oldval) {
+					console.log('style changed:' + oldval + '=>' + newval);
+					this.updateStyles();
+				},
+
+				ready: function() {
+					const messageCenter = this.$.messageCenter;
+					const doc = this;
+					console.log("Ready");
+
+					messageCenter.addSocketEventListener('base#Base initialized', onInitialized);
+					messageCenter.addSocketEventListener('cat-db#Ack', onAck);
+					this.getBitsSystemId(messageCenter);
+
+					console.log("Try to query DB");
+					this.$.catDB.list()
+					.then((entries) => {
+						console.log('DB Entries', entries);
+					})
+					.catch((err) => {
+						console.error("Error: ", err);
+					});
+				},
+
+				onSend: function(e, detail) {
+					console.log(`type: ${this.$.type.selected}`);
+					console.log(`name: ${this.selectedName}`);
+					console.log(`age: ${this.selectedAge}`);
+	
+					if (this.$.type.selected == "")
+						return;
+					if (this.$.age.invalid || !this.selectedName)
+						return;
+					if (this.$.age.invalid || !this.selectedAge)
+						return;
+
+					console.log('Commit DB');
+					return Promise.resolve()
+					.then(() => {
+						return this.$.catDB.create(
+							{type: this.$.type.selected,
+							 name: this.selectedName,
+							 age: this.selectedAge})
+					})
+					.then((entry) => {
+						this.$.type.selected = "Nora";
+						this.selectedName = "";
+						this.selectedAge = "";
+						this.$.age.invalid = false;
+						this.msgClass = "normal";
+
+						this.msg = 'Entry Added (ID:' + entry.id + ')';
+						return entry;
+					})
+					.catch((msg) => {
+						this.msgClass = "error";
+						this.msg = msg;
+					});
+				},
+
+				onClear: function(e, detail) {
+					console.log("Clear All cats");
+					this.clear()
+					.then((msg) => {
+						this.msgClass = "normal";
+						this.msg = msg;
+					})
+					.catch((msg) => {
+						this.msgClass = "error";
+						this.msg = msg;
+					});
+				},
+
+				onPing: function(e, detail) {
+					console.log("send ping request");
+					this.ping()
+					.then((msg) => {
+						this.msgClass = "normal";
+						this.msg = msg;
+					})
+					.catch((msg) => {
+						this.msgClass = "error";
+						this.msg = msg;
+					});
+				},
+
+				getBitsSystemId: function(messageCenter) {
+					return messageCenter.sendRequest('base#System bitsId')
+					.then((systemId) => {
+						this.systemIdClass = "normal";
+						this.systemId = systemId;
+						console.log(`BITS id is ${systemId}.`);
+					})
+					.catch((err) => {
+						console.error('Failed to get the BITS id:', err);
+						this.systemIdClass = "error";
+						this.systemId = err;
+					});
+				},
+
+				ping: function() {
+					console.log('Ping request');
+					
+					return Promise.resolve()
+					.then(() => {
+						return this.$.messageCenter.sendRequest('cat-db#Ping', {});
+					})
+					.then((msg) => {
+						console.log('Ping: ', msg);
+						return Promise.resolve(msg);
+					});
+				},
+
+				clear: function () {
+					return Promise.resolve()
+					.then(() => {
+						 return this.$.messageCenter.sendRequest('cat-db#Clear', {});
+					})
+					.then((msg) => {
+						console.log('Clear: ', msg);
+						return Promise.resolve(msg);
+					});
+				},
+			});
+		})();
+	</script>
+</dom-module>
